@@ -4,7 +4,8 @@
 #   ./run_all_test.sh stop   kill devices and remove the lab
 # Needs: a graphical session (gnome-terminal / xterm / konsole / x-terminal-emulator) or tmux.
 
-DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PSK='long-random-secret'
 MSG='hello secure world'
 
@@ -16,7 +17,7 @@ if [ "${1:-}" = "stop" ]; then
     sudo pkill secure_device 2>/dev/null
     sudo pkill tcpdump 2>/dev/null
     sudo pkill nc 2>/dev/null
-    sudo "$DIR/net_cleanup.sh"
+    sudo "$SCRIPT_DIR/net_cleanup.sh"
     command -v tmux >/dev/null && tmux kill-session -t securetest 2>/dev/null
     exit 0
 fi
@@ -31,7 +32,7 @@ else echo "No terminal emulator or tmux found. Install one: sudo apt install xte
 echo "Terminal mode: $MODE"
 
 open_term() {   # open_term "title" "command"
-    local title="$1" cmd="cd '$DIR'; export SECURE_DEVICE_PSK='$PSK'; $2; echo; echo '[done - press Enter to close]'; read _"
+    local title="$1" cmd="cd '$PROJECT_DIR'; export SECURE_DEVICE_PSK='$PSK'; $2; echo; echo '[done - press Enter to close]'; read _"
     case $MODE in
         gnome)   gnome-terminal --title="$title" -- bash -c "$cmd" ;;
         konsole) konsole --new-tab -p tabtitle="$title" -e bash -c "$cmd" & ;;
@@ -50,7 +51,7 @@ open_term() {   # open_term "title" "command"
 sudo -v || exit 1
 
 # ---------- 1. build ----------
-cd "$DIR" || exit 1
+cd "$PROJECT_DIR" || exit 1
 rm -f test_packet secure_device
 echo "=== Building and running unit test ==="
 make test || { echo "Unit test failed"; exit 1; }
@@ -58,8 +59,8 @@ make device || { echo "Device build failed (install libnetfilter-queue-dev pkg-c
 
 # ---------- 2. lab ----------
 echo "=== Creating lab ==="
-sudo "$DIR/net_cleanup.sh" >/dev/null 2>&1
-sudo "$DIR/net_config.sh" || { echo "net_config.sh failed"; exit 1; }
+sudo "$SCRIPT_DIR/net_cleanup.sh" >/dev/null 2>&1
+sudo "$SCRIPT_DIR/net_config.sh" || { echo "net_config.sh failed"; exit 1; }
 
 sudo ip netns exec pc1 ip link set veth-pc1 mtu 1400
 sudo ip netns exec pc2 ip link set veth-pc2 mtu 1400
