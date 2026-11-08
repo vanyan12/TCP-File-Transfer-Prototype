@@ -43,13 +43,13 @@ The lab setup operates inside isolated Linux network namespaces, mimicking an in
 
 | File | Description |
 | :--- | :--- |
-| `secure_device.c` | Main application entry point managing control connections, NFQUEUE processing, and state machine. |
-| `crypto.c` / `.h` | OpenSSL integration for AES-256-GCM, DH Key Exchange, and HKDF key derivation. |
-| `packet.c` / `.h` | TCP packet parsing, AAD extraction, and payload transformation engine. |
-| `checksum.c` / `.h` | IP/TCP packet validation and RFC 1071 checksum repair library. |
-| `test_packet.c` | Unit and integration test suite validating payload round-trip crypto and checksum integrity. |
-| `net_config.sh` | Bash script setting up 4 namespaces, veth pairs, routing tables, and IP addresses. |
-| `net_cleanup.sh` | Teardown script removing all created network namespaces. |
+| `src/secure_device.c` | Main application entry point managing control connections, NFQUEUE processing, and state machine. |
+| `src/crypto.c` / `include/crypto.h` | OpenSSL integration for AES-256-GCM, DH key exchange, and HKDF key derivation. |
+| `src/packet.c` / `include/packet.h` | TCP packet parsing, AAD extraction, and payload transformation engine. |
+| `src/checksum.c` / `include/checksum.h` | IP/TCP packet validation and RFC 1071 checksum repair library. |
+| `tests/test_packet.c` | Unit and integration test suite validating payload round-trip crypto and checksum integrity. |
+| `scripts/net_config.sh` | Bash script setting up 4 namespaces, veth pairs, routing tables, and IP addresses. |
+| `scripts/net_cleanup.sh` | Teardown script removing all created network namespaces. |
 | `Makefile` | Build configuration file for compilation and testing. |
 
 ---
@@ -88,7 +88,7 @@ make test
 Execute the setup script with root privileges to configure the network namespaces (`pc1`, `encoder`, `decoder`, `pc2`):
 
 ```bash
-sudo ./net_config.sh
+sudo ./scripts/net_config.sh
 ```
 
 ### Step 2: Configure NFQUEUE Rules
@@ -134,7 +134,7 @@ sudo ip netns exec pc1 sh -c 'echo "Hello Secure World!" | nc 10.0.3.2 9000'
 To safely tear down the virtual interfaces and network namespaces:
 
 ```bash
-sudo ./net_cleanup.sh
+sudo ./scripts/net_cleanup.sh
 make clean
 ```
 
